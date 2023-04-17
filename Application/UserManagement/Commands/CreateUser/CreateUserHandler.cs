@@ -22,14 +22,6 @@ namespace Application.UserManagement.Commands.CreateUser
 
         public async Task<Unit> Handle(CreateUser request, CancellationToken cancellationToken)
         {
-
-            var role = await _roleRepository.OfIdAsync(request.RoleId.ToString());
-
-            if (role == null)
-            {
-                throw new KeyNotFoundException($"Role was not found for Id: {request.RoleId}");
-            }
-
             var user = new User()
             {
                 FirstName = request.FirstName,
@@ -39,11 +31,11 @@ namespace Application.UserManagement.Commands.CreateUser
                 UserName = request.Email,
             };
 
-            var result = await _userRepository.InsertAsync(user, request.Password, role);
-            if (result.Succeeded)
-            {
-                await _unitOfWork.SaveAsync();
-            }
+            var result = await _userRepository.InsertAsync(user, request.Password);
+            //if (result.Succeeded)
+            //{
+            //    await _unitOfWork.SaveAsync();
+            //}
 
 
             return Unit.Value;

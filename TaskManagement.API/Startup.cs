@@ -68,6 +68,8 @@ namespace TaskManagement.API
 
             app.UseAuthorization();
 
+            app.UseAuthentication();
+
             app.MapControllers();
 
             app.Run();

@@ -1,8 +1,11 @@
-﻿using Application.UserManagement.Commands.CreateUser;
+﻿using Application.UserManagement.Commands.AddUserToRole;
+using Application.UserManagement.Commands.CreateUser;
 using Application.UserManagement.Commands.DeleteUser;
 using Application.UserManagement.Commands.UpdateUser;
 using Application.UserManagement.Queries.GetUser;
+using Application.UserManagement.Queries.GetUserRoles;
 using Application.UserManagement.Queries.GetUsers;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,6 +63,26 @@ namespace TaskManagement.API.Controllers
             _ = await this.Mediator.Send(command);
 
             return Ok();
+        }
+
+        [HttpPost("{userId}/{roleId}")]
+        public async Task<ActionResult> AddUserToRole(Guid userId, Guid roleId)
+        {
+            var command = new AddUserToRole(userId,roleId);
+
+            _ = await this.Mediator.Send(command);
+
+            return StatusCode(201);
+        }
+
+        [HttpGet("{userId}/Roles")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetUserRoles(Guid userId)
+        {
+            var request = new GetUserRolesRequest() { UserId=userId };
+
+            return Ok(await this.Mediator.Send(request));
         }
     }
 }

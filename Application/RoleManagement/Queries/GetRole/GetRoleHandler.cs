@@ -14,7 +14,7 @@ namespace Application.RoleManagement.Queries.GetRole
         }
         public async Task<GetRoleResponse> Handle(GetRoleRequest request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.OfIdAsync(request.RoleId);
+            var role = await _roleRepository.OfIdAsync(request.RoleId.ToString());
 
             if (role == null)
             {

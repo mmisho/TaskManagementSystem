@@ -30,11 +30,9 @@ namespace Infrastructure.Repositories.UserManagement
             return await this._userManager.GetRolesAsync(user);
         }
 
-        public async Task<IdentityResult> InsertAsync(User aggregateRoot, string password, Role role)
+        public async Task<IdentityResult> InsertAsync(User aggregateRoot, string password)
         {
             var result = await _userManager.CreateAsync(aggregateRoot, password);
-
-            await _userManager.AddToRoleAsync(aggregateRoot, role.Name);
 
             return result;
         }
@@ -49,9 +47,24 @@ namespace Infrastructure.Repositories.UserManagement
             return await _userManager.UpdateAsync(user);
         }
 
-        public override void Update(User aggregateRoot)
+        public async Task<IdentityResult> AddUserToRole(User user, Role role)
         {
-            _ = this.UpdateAsync(aggregateRoot).Result;
+           return await _userManager.AddToRoleAsync(user, role.Name);
+        }
+     
+
+        public async Task<(bool success, User? user)> ValidateUserAsync(string userName, string password)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+
+            if (user != null)
+            {
+                var result = await _userManager.CheckPasswordAsync(user, password);
+
+                return (result, user);
+            }
+
+            return (false, null);
         }
     }
 }
