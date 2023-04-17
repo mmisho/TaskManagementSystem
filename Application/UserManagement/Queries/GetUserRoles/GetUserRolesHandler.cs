@@ -7,12 +7,10 @@ namespace Application.UserManagement.Queries.GetUserRoles
     public class GetUserRolesHandler : IRequestHandler<GetUserRolesRequest, GetUserRolesResponse>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IRoleRepository _roleRepository;
 
-        public GetUserRolesHandler(IUserRepository userRepository, IRoleRepository roleRepository)
+        public GetUserRolesHandler(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _roleRepository = roleRepository;
         }
         public async Task<GetUserRolesResponse> Handle(GetUserRolesRequest request, CancellationToken cancellationToken)
         {
