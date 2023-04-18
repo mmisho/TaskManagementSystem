@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Application.Shared.Options;
+using Infrastructure.Shared;
 
 namespace TaskManagement.API
 {
@@ -94,7 +95,6 @@ namespace TaskManagement.API
                 option.AddPolicy("TaskUpdate", policy => policy.RequireClaim("Task_Permission", ClaimType.Task_Update.ToString()));
                 option.AddPolicy("TaskDelete", policy => policy.RequireClaim("Task_Permission", ClaimType.Task_Delete.ToString()));
             });
-
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();

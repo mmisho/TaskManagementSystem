@@ -12,11 +12,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace TaskManagement.API.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : BaseApiController
     {
-        [Authorize(Roles = "Administrator")]
+        
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync(int? page, int? pageSize)

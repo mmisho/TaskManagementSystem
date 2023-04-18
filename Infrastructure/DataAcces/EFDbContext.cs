@@ -24,25 +24,7 @@ namespace Infrastructure.DataAcces
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            var roleId= Guid.NewGuid().ToString();
-            var userId= Guid.NewGuid().ToString();
-            builder.Entity<IdentityRole>().HasData(
-                new IdentityRole { Id = roleId, Name = "Administrator", NormalizedName = "ADMINISTRATOR".ToUpper() });
-
-            builder.Entity<IdentityRole>().HasData(
-                new IdentityUser
-                {
-                    Id = userId, 
-                    UserName = "myuser",
-                    NormalizedUserName = "MYUSER",
-                    PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(null, "Password")
-                });
-
-            new IdentityUserRole<string>
-            {
-                RoleId = roleId,
-                UserId = userId,
-            };
+          
 
             base.OnModelCreating(builder);
 
