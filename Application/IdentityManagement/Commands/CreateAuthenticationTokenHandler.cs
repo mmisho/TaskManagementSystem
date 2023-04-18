@@ -1,4 +1,5 @@
-﻿using Domain.UserManagement;
+﻿using Domain.RoleManagement.Repositories;
+using Domain.UserManagement;
 using Domain.UserManagement.Repository;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -13,11 +14,13 @@ namespace Application.IdentityManagement.Commands
     public class CreateAuthenticationTokenHandler : IRequestHandler<CreateAuthenticationTokenRequest, CreateAuthenticationTokenResponse>
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
         private readonly IConfiguration _configuration;
 
-        public CreateAuthenticationTokenHandler(IUserRepository userRepository, IConfiguration configuration)
+        public CreateAuthenticationTokenHandler(IUserRepository userRepository,IRoleRepository roleRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _roleRepository = roleRepository;
             _configuration = configuration;
         }
         public async Task<CreateAuthenticationTokenResponse> Handle(CreateAuthenticationTokenRequest request, CancellationToken cancellationToken)
@@ -57,6 +60,10 @@ namespace Application.IdentityManagement.Commands
             foreach (var role in roles)
             {
                 claims.Add(new Claim(UserClaims.Role, role));
+                var roleObj = await _roleRepository.GetRoleByName(role);
+                var claim = await _roleRepository.GetClaimsByRole(roleObj);
+
+                claims.AddRange(claim);
             }
 
             return claims;

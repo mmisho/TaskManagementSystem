@@ -6,6 +6,7 @@ using Application.UserManagement.Queries.GetUser;
 using Application.UserManagement.Queries.GetUserRoles;
 using Application.UserManagement.Queries.GetUsers;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +16,7 @@ namespace TaskManagement.API.Controllers
     [ApiController]
     public class UserController : BaseApiController
     {
-
+        [Authorize(Roles = "Administrator")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync(int? page, int? pageSize)

@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using Domain.RoleManagement;
 using Domain.Shared;
 using Microsoft.AspNetCore.Identity;
 

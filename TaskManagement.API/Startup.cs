@@ -13,13 +13,21 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using Domain.TaskManagement.Repositories;
+using Infrastructure.Repositories.TaskManagement;
+using Application.Shared.Enums;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Application.Shared.Options;
 
 namespace TaskManagement.API
 {
     public class StartUp
     {
         public IConfiguration Configuration { get; }
-        public string ConnectionString { get;} 
+        public string ConnectionString { get; }
 
         public StartUp(IConfiguration configuration)
         {
@@ -31,7 +39,35 @@ namespace TaskManagement.API
         {
             services.AddControllers();
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(c =>
+            {
+                c.ResolveConflictingActions(apiDescription => apiDescription.First());
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the bearer scheme.",
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            },
+                        },
+                        new string[] { }
+                    },
+                });
+            });
+
             services.AddDbContext<EFDbContext>(opt =>
                 opt.UseNpgsql(this.ConnectionString));
 
@@ -51,9 +87,19 @@ namespace TaskManagement.API
             .AddDefaultTokenProviders();
             services.AddValidatorsFromAssembly(typeof(CreateUser).GetTypeInfo().Assembly);
 
+            ConfgiureJwt(services, Configuration);
+            services.AddAuthorization(option =>
+            {
+                option.AddPolicy("TaskCreate", policy => policy.RequireClaim("Task_Permission", ClaimType.Task_Create.ToString()));
+                option.AddPolicy("TaskUpdate", policy => policy.RequireClaim("Task_Permission", ClaimType.Task_Update.ToString()));
+                option.AddPolicy("TaskDelete", policy => policy.RequireClaim("Task_Permission", ClaimType.Task_Delete.ToString()));
+            });
+
+
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IRoleRepository,RoleRepository>();
-            services.AddScoped<IUnitOfWork,UnitOfWork>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
@@ -66,13 +112,37 @@ namespace TaskManagement.API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
+
             app.Run();
+        }
+        public static void ConfgiureJwt(IServiceCollection services, IConfiguration configuration)
+        {
+            var jwtOptions = configuration.GetSection(JwtOptions.ConfigSection).Get<JwtOptions>();
+
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.Audience = jwtOptions.ValidAudience;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtOptions.ValidIssuer,
+                    ValidAudiences = jwtOptions.ValidAudiences,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+                };
+            });
         }
     }
 }
